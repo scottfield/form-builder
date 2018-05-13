@@ -1,23 +1,25 @@
 import React from "react";
 import FormBuilder from "./FormBuilder";
 
-
-const Form = FormBuilder.config({
-  onValuesChange: (props, changedValues, allValues) => {
-    console.log("onValuesChange", props, changedValues, allValues);
-  },
-  onFieldsChange: (props, fields) => {
-    console.log("onFieldsChange", props, fields);
-  }
-}).build();
 export default class FormComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {...props};
+  }
+
   render() {
     const formConfig = {
       formItemLayout: {
         labelCol: {span: 6},
         wrapperCol: {span: 12},
       },
-      columnCount: 2,
+      onFieldsChange: (props, fields) => {
+        console.log("field changes in form configuration", props, fields);
+        /*if (fields.custNo) {
+          this.setState({customer1: this.props.customer1.filter(item => item.value === fields.custNo.value)});
+        }*/
+      },
+      columnCount: 1,
       items: [
         {
           field: 'custNo',
@@ -25,8 +27,12 @@ export default class FormComponent extends React.Component {
           control: {
             name: 'select',
             config: {
-              dataSource: [{value: 554401, label: 'WOODY'}, {value: 554402, label: 'BUZZ'}],
-              allowClear: true
+              datasource: this.state.customers,
+              allowClear: true,
+              onChange: function (value, _, form) {
+                debugger
+                form.setFieldsValue({custGroupName: value});
+              }
             }
           },
           decoratorConfig: {rules: [{required: true, message: 'Please Select Customer!'}], initialValue: 554401,},
@@ -48,8 +54,9 @@ export default class FormComponent extends React.Component {
           field: 'custGroupName',
           label: 'Customer Group Name',
           control: {
+            name: 'select',
             config: {
-              placeholder: 'Group Name'
+              datasource: this.state.customer1
             }
           },
         },
@@ -59,7 +66,7 @@ export default class FormComponent extends React.Component {
           control: {
             name: 'radioGroup',
             config: {
-              dataSource: [
+              datasource: [
                 {value: 1, label: 'Customer'},
                 {value: 2, label: 'Auto'},
               ]
@@ -94,7 +101,7 @@ export default class FormComponent extends React.Component {
       },
     };
     return (
-      <Form formConfig={formConfig}/>
+      <FormBuilder formConfig={formConfig}/>
     );
   };
 }

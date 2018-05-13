@@ -2,11 +2,14 @@ import React from 'react';
 import {connect} from 'dva';
 import Form from '../components/FormComponent';
 
-function FormPage() {
+function FormPage(props) {
   return (
-    <Form/>
+    <Form {...props}/>
   );
 }
 
+function mapStateToProps(props) {
+  return {...props.example};
+}
 
-export default connect()(FormPage);
+export default connect(mapStateToProps)(FormPage);

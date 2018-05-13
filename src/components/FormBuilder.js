@@ -1,5 +1,5 @@
 import React from 'react';
-import {Form, Input, Button, Row, Col} from 'antd';
+import {Button, Col, Form, Input, Row} from 'antd';
 import Select from './Select';
 import RadioGroup from './RadioGroup';
 
@@ -45,6 +45,9 @@ class FormBuilder extends React.Component {
       const fieldError = isFieldTouched(item.field) && getFieldError(item.field);
       const Controls = controlMap[item.control.name || 'input'];
       const span = 24 / columnCount;
+      const onChange = (...params) => {
+        (item.control.config.onChange || noop)(...params, this.props.form);
+      }
       return (
         <Col key={item.field} span={span}>
           <FormItem
@@ -54,7 +57,7 @@ class FormBuilder extends React.Component {
             {...item.formItemLayout || formItemLayout}
           >
             {getFieldDecorator(item.field, item.decoratorConfig)(
-              <Controls  {...item.control.config}/>
+              <Controls  {...item.control.config} onChange={onChange}/>
             )}
           </FormItem>
         </Col>
@@ -81,12 +84,13 @@ class FormBuilder extends React.Component {
   }
 }
 
-export default {
-  config: function (options) {
-    this.options = options;
-    return this;
-  },
-  build: function () {
-    return Form.create(this.options || {})(FormBuilder);
-  }
+const noop = () => {
 };
+export default Form.create({
+  onValuesChange: (props, changedValues, allValues) => {
+    (props.formConfig.onValuesChange || noop)(props, changedValues, allValues);
+  },
+  onFieldsChange: (props, fields) => {
+    (props.formConfig.onFieldsChange || noop)(props, fields);
+  },
+})(FormBuilder);
