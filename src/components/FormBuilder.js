@@ -1,5 +1,6 @@
 import React from 'react';
 import {Button, Col, Form, Input, Row} from 'antd';
+import PropTypes from 'prop-types';
 import Select from './Select';
 import RadioGroup from './RadioGroup';
 
@@ -15,6 +16,33 @@ const defaultControls = {
   'select': Select,
   'radioGroup': RadioGroup,
 };
+const DEFAULT_CONTROL_NAME = 'input';
+const defaultButtonFormItemLayout = {
+  wrapperCol: {
+    span: 24,
+    offset: 16,
+  },
+};
+const TOTAL_COLUMN = 24;
+const DEFAULT_COLUMN_COUNT = 1;
+const defaultFormItemLayout = {
+  labelCol: {span: 6},
+  wrapperCol: {span: 12},
+};
+const defaultSubmitButton = {
+  type: 'primary',
+  htmlType: 'submit',
+  text: 'Ok',
+  style: {marginLeft: 10}
+};
+const defaultCancelButton = {
+  type: 'default',
+  htmlType: 'button',
+  text: 'Cancel',
+  onClick: function () {
+    console.log("cancel form");
+  }
+};
 
 class FormBuilder extends React.Component {
   componentDidMount() {
@@ -26,28 +54,27 @@ class FormBuilder extends React.Component {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
       if (!err) {
-        (this.props.formConfig.submitHandler || console.log)(values);
+        (this.props.submitHandler || console.log)(values);
       }
     });
   }
 
   render() {
     const {getFieldDecorator, getFieldsError, getFieldError, isFieldTouched} = this.props.form;
-    const {items, formLayout, formItemLayout, columnCount = 1, submitButton, extraControls, cancelButton} = this.props.formConfig;
+    const {
+      items, formLayout, formItemLayout = defaultFormItemLayout, columnCount = DEFAULT_COLUMN_COUNT,
+      extraControls, buttonFormItemLayout = defaultButtonFormItemLayout, submitButton = defaultSubmitButton,
+      cancelButton = defaultCancelButton, cancelhandler
+    } = this.props;
     const controlMap = {...defaultControls, ...extraControls};
-    const buttonFormItemLayout = {
-      wrapperCol: {
-        span: 24,
-        offset: 16,
-      },
-    };
+
     const cols = items.map((item) => {
       const fieldError = isFieldTouched(item.field) && getFieldError(item.field);
-      const Controls = controlMap[item.control.name || 'input'];
-      const span = 24 / columnCount;
+      const Control = controlMap[item.control.name || DEFAULT_CONTROL_NAME];
+      const span = TOTAL_COLUMN / columnCount;
       const onChange = (...params) => {
-        (item.control.config.onChange || noop)(...params, this.props.form);
-      }
+        (item.control.config && item.control.config.onChange || noop)(...params, this.props.form);
+      };
       return (
         <Col key={item.field} span={span}>
           <FormItem
@@ -57,7 +84,7 @@ class FormBuilder extends React.Component {
             {...item.formItemLayout || formItemLayout}
           >
             {getFieldDecorator(item.field, item.decoratorConfig)(
-              <Controls  {...item.control.config} onChange={onChange}/>
+              <Control  {...item.control.config} onChange={onChange}/>
             )}
           </FormItem>
         </Col>
@@ -68,6 +95,7 @@ class FormBuilder extends React.Component {
         <Row>{cols}</Row>
         <FormItem {...buttonFormItemLayout}>
           <Button
+            onClick={cancelhandler}
             {...cancelButton}
           >
             {cancelButton.text}
@@ -84,13 +112,24 @@ class FormBuilder extends React.Component {
   }
 }
 
+FormBuilder.propTypes = {
+  formItemLayout: PropTypes.object,
+  buttonFormItemLayout: PropTypes.object,
+  columnCount: PropTypes.number,
+  items: PropTypes.array.isRequired,
+  submitButton: PropTypes.object,
+  cancelButton: PropTypes.object,
+  submitHandler: PropTypes.func.isRequired,
+  cancelHandler: PropTypes.func.isRequired,
+  extraControls: PropTypes.object
+};
 const noop = () => {
 };
 export default Form.create({
   onValuesChange: (props, changedValues, allValues) => {
-    (props.formConfig.onValuesChange || noop)(props, changedValues, allValues);
+    (props.onValuesChange || noop)(props, changedValues, allValues);
   },
   onFieldsChange: (props, fields) => {
-    (props.formConfig.onFieldsChange || noop)(props, fields);
+    (props.onFieldsChange || noop)(props, fields);
   },
 })(FormBuilder);
