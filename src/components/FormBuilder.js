@@ -1,8 +1,8 @@
-import React from 'react';
-import {Button, Col, Form, Input, Row} from 'antd';
+import { Button, Col, Form, Input, Row } from 'antd';
 import PropTypes from 'prop-types';
-import Select from './Select';
+import React from 'react';
 import RadioGroup from './RadioGroup';
+import Select from './Select';
 
 function hasErrors(fieldsError) {
   return Object.keys(fieldsError).some(field => fieldsError[field]);
@@ -26,22 +26,22 @@ const defaultButtonFormItemLayout = {
 const TOTAL_COLUMN = 24;
 const DEFAULT_COLUMN_COUNT = 1;
 const defaultFormItemLayout = {
-  labelCol: {span: 6},
-  wrapperCol: {span: 12},
+  labelCol: { span: 6 },
+  wrapperCol: { span: 12 },
 };
 const defaultSubmitButton = {
   type: 'primary',
   htmlType: 'submit',
   text: 'Ok',
-  style: {marginLeft: 10}
+  style: { marginLeft: 10 },
 };
 const defaultCancelButton = {
   type: 'default',
   htmlType: 'button',
   text: 'Cancel',
   onClick: function () {
-    console.log("cancel form");
-  }
+    console.log('cancel form');
+  },
 };
 
 class FormBuilder extends React.Component {
@@ -57,16 +57,16 @@ class FormBuilder extends React.Component {
         (this.props.submitHandler || console.log)(values);
       }
     });
-  }
+  };
 
   render() {
-    const {getFieldDecorator, getFieldsError, getFieldError, isFieldTouched} = this.props.form;
+    const { getFieldDecorator, getFieldsError, getFieldError, isFieldTouched } = this.props.form;
     const {
       items, formLayout, formItemLayout = defaultFormItemLayout, columnCount = DEFAULT_COLUMN_COUNT,
       extraControls, buttonFormItemLayout = defaultButtonFormItemLayout, submitButton = defaultSubmitButton,
-      cancelButton = defaultCancelButton, cancelhandler
+      cancelButton = defaultCancelButton, cancelHandler ,
     } = this.props;
-    const controlMap = {...defaultControls, ...extraControls};
+    const controlMap = { ...defaultControls, ...extraControls };
 
     const cols = items.map((item) => {
       const fieldError = isFieldTouched(item.field) && getFieldError(item.field);
@@ -84,7 +84,7 @@ class FormBuilder extends React.Component {
             {...item.formItemLayout || formItemLayout}
           >
             {getFieldDecorator(item.field, item.decoratorConfig)(
-              <Control  {...item.control.config} onChange={onChange}/>
+              <Control  {...item.control.config} onChange={onChange} />,
             )}
           </FormItem>
         </Col>
@@ -95,7 +95,7 @@ class FormBuilder extends React.Component {
         <Row>{cols}</Row>
         <FormItem {...buttonFormItemLayout}>
           <Button
-            onClick={cancelhandler}
+            onClick={cancelHandler}
             {...cancelButton}
           >
             {cancelButton.text}
@@ -121,7 +121,7 @@ FormBuilder.propTypes = {
   cancelButton: PropTypes.object,
   submitHandler: PropTypes.func.isRequired,
   cancelHandler: PropTypes.func.isRequired,
-  extraControls: PropTypes.object
+  extraControls: PropTypes.object,
 };
 const noop = () => {
 };
@@ -131,5 +131,13 @@ export default Form.create({
   },
   onFieldsChange: (props, fields) => {
     (props.onFieldsChange || noop)(props, fields);
+  },
+  mapPropsToFields(props) {
+    return props.items.filter(item => Object.keys(item).includes('value')).reduce((accumulator, item) => {
+      accumulator[item.field] = Form.createFormField({
+        value: item.value,
+      });
+      return accumulator;
+    }, {});
   },
 })(FormBuilder);
