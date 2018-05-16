@@ -2,10 +2,10 @@ import React from 'react';
 import {connect} from 'dva';
 import Form from '../components/FormComponent';
 
-function FormPage(props) {
-  return (
-    <Form {...props}/>
-  );
+class FormPage extends React.Component {
+  render() {
+    return (<Form {...this.props}/>);
+  }
 }
 
 function mapStateToProps(props) {

@@ -2,35 +2,32 @@ import React from "react";
 import FormBuilder from "./FormBuilder";
 
 export default class FormComponent extends React.Component {
-  constructor(props) {
-    super(props);
-    // this.state = {...props};
-  }
-
   render() {
     const formConfig = {
+      dispatch: this.props.dispatch,
+      action: {type: 'example/r_updateState'},
       items: [
         {
           field: 'custNo',
           label: 'Customer',
+          value: this.props.custNo,
           control: {
             name: 'select',
             config: {
               datasource: this.props.customers,
               allowClear: true,
               onChange: (value, _, form) => {
-                // form.setFieldsValue({groupName: value});
-                // form.setFieldsValue({custGroupName: null});
-                // this.setState({customer1: this.props.customer1.filter(item => item.value === value)});
                 this.props.dispatch({type: 'example/r_updateCustomer1', payload: value});
+                this.props.dispatch({type: 'example/r_updateState', payload: {name: 'custGroupName', value: null}});
               }
             }
           },
-          decoratorConfig: {rules: [{required: true, message: 'Please Select Customer!'}], initialValue: 554401,},
+          decoratorConfig: {rules: [{required: true, message: 'Please Select Customer!'}],},
         },
         {
           field: 'groupName',
           label: 'Group Name',
+          value: this.props.groupName,
           control: {
             config: {
               placeholder: 'Group Name'
@@ -45,6 +42,7 @@ export default class FormComponent extends React.Component {
         {
           field: 'custGroupName',
           label: 'Customer Group Name',
+          value: this.props.custGroupName,
           control: {
             name: 'select',
             config: {
@@ -55,6 +53,7 @@ export default class FormComponent extends React.Component {
         {
           field: 'allocType',
           label: 'Alloc Type',
+          value: this.props.allocType,
           control: {
             name: 'radioGroup',
             config: {
@@ -64,11 +63,12 @@ export default class FormComponent extends React.Component {
               ]
             }
           },
-          decoratorConfig: {rules: [{required: true, message: 'Please choose Alloc Type!'}], initialValue: 1},
+          decoratorConfig: {rules: [{required: true, message: 'Please choose Alloc Type!'}],},
         },
         {
           field: 'parts',
           label: 'Part',
+          value: this.props.parts,
           control: {
             name: 'textarea',
           },
