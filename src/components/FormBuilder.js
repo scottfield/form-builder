@@ -4,15 +4,11 @@ import PropTypes from 'prop-types';
 import Select from './Select';
 import RadioGroup from './RadioGroup';
 
-function hasErrors(fieldsError) {
-  return Object.keys(fieldsError).some(field => fieldsError[field]);
-}
-
 const FormItem = Form.Item;
 const defaultControls = {
   'input': Input,
   'button': Button,
-  'textarea': Input.TextArea,
+  'textarea': Input,
   'select': Select,
   'radioGroup': RadioGroup,
 };
@@ -48,29 +44,33 @@ class FormBuilder extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      submited: false,
+      fields: {}
     };
-  }
-
-  componentDidMount() {
-    // To disabled submit button at the beginning.
-    this.props.form.validateFields();
+    console.log("create form builder instance");
   }
 
   handleSubmit = (e) => {
     e.preventDefault();
-    this.props.form.validateFields((err, values) => {
-      if (!err) {
-        (this.props.submitHandler || console.log)(values);
-      } else if (!this.state.submited) {
-        this.setState({submited: true});
-      }
-    });
-  }
+    console.log("form submit", e);
+  };
+  handleOnChange = (item, e) => {
+    console.log("field change", e);
+    const controlName = item.control.name || 'input';
+    let value = e;
+    if (controlName === 'select') {
+      value = e;
+    }
+    if (controlName === 'input' || controlName === 'radioGroup' || controlName === 'TextArea') {
+      value = e.target.value;
+    }
+
+    this.setState(prevState => {
+      return {fields: {...prevState.fields, [item.field]: value}};
+    })
+  };
 
   render() {
-    console.log("FormBuilder render");
-    const {getFieldDecorator, getFieldsError, getFieldError, isFieldTouched} = this.props.form;
+    console.log("FormBuilder render", this.props);
     const {
       items, formLayout, formItemLayout = defaultFormItemLayout, columnCount = DEFAULT_COLUMN_COUNT,
       extraControls, buttonFormItemLayout = defaultButtonFormItemLayout, submitButton = defaultSubmitButton,
@@ -79,12 +79,9 @@ class FormBuilder extends React.Component {
     const controlMap = {...defaultControls, ...extraControls};
 
     const cols = items.map((item) => {
-      const fieldError = ( isFieldTouched(item.field) || this.state.submited) && getFieldError(item.field);
+      const fieldError = "dafdafdafda";
       const Control = controlMap[item.control.name || DEFAULT_CONTROL_NAME];
       const span = TOTAL_COLUMN / columnCount;
-      const onChange = (...params) => {
-        (item.control.config && item.control.config.onChange || noop)(...params, this.props.form);
-      };
       return (
         <Col key={item.field} span={span}>
           <FormItem
@@ -93,9 +90,9 @@ class FormBuilder extends React.Component {
             label={item.label}
             {...item.formItemLayout || formItemLayout}
           >
-            {getFieldDecorator(item.field, item.decoratorConfig)(
-              <Control  {...item.control.config} onChange={onChange}/>
-            )}
+            <Control  {...item.control.config} value={this.state.fields[item.field]} onChange={(e) => {
+              this.handleOnChange(item, e)
+            }}/>
           </FormItem>
         </Col>
       );
@@ -132,32 +129,4 @@ FormBuilder.propTypes = {
   cancelHandler: PropTypes.func.isRequired,
   extraControls: PropTypes.object
 };
-const noop = () => {
-};
-export default Form.create({
-  onValuesChange: (props, changedValues, allValues) => {
-    console.log("onValuesChange");
-    (props.onValuesChange || noop)(props, changedValues, allValues);
-  },
-  onFieldsChange: (props, fields) => {
-    if (Object.values(fields).includes(field => field.dirty)) {
-      return;
-    }
-    if (props.onFieldsChange) {
-      props.onFieldsChange(props, fields);
-    } else if (props.dispatch) {
-      Object.keys(fields).forEach(field => {
-        props.dispatch({...props.action, payload: {...props.action.payload, name: field, value: fields[field].value}});
-      });
-    }
-
-    (props.onFieldsChange || noop)(props, fields);
-  },
-  mapPropsToFields: (props) => {
-    console.log("mapPropsToFields");
-    return props.items.filter(item => Object.keys(item).includes("value")).reduce((accumulator, item) => {
-      accumulator[item.field] = Form.createFormField({value: item.value});
-      return accumulator;
-    }, {});
-  }
-})(FormBuilder);
+export default FormBuilder;
